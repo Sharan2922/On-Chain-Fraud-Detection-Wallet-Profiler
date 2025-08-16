@@ -1,215 +1,99 @@
-# On-Chain Fraud Detection & Wallet Profiler (Consumer App Backend)
 
-Production-ready backend scaffold for your Onchain Summer Awards submission.
-Stack: **FastAPI**, **SQLAlchemy (Postgres)**, **Celery + Redis**, **scikit-learn IsolationForest**, **Web3.py**, **Hardhat (Solidity)**.
+# 🛡️ On-Chain Fraud Detection & Wallet Profiler
 
-> Frontend will be handled by Bolt AI. This repo exposes clean REST APIs and contracts that your UI can call immediately.
+A fraud detection and wallet profiling system for Web3, built on **Base**.  
+This project detects suspicious wallet activity, generates trust scores, and provides APIs for consumer apps and dashboards.  
 
----
-
-## ⚙️ Features
-
-- Wallet risk scoring with explainable breakdown
-- On-chain logging contract on **Base** (`BaseTrustRegistry`) for engagement & transparency
-- ETL ingestion from Base via Alchemy (or equivalent RPC)
-- Anomaly detection (IsolationForest) on engineered address features
-- Labeling + community reports (on-chain + off-chain)
-- Celery workers for async ingestion and scoring
-- OpenAPI (Swagger) auto-docs at `/docs`
-- Strict typing, Pydantic models, structured logs
+🚀 Built for the **Onchain Summer Awards 2025**.
 
 ---
 
-## 🗂 Project Structure
+## 📌 Features
+- 🔍 **Wallet Risk Scoring**: Detect suspicious transactions & assign trust scores.  
+- 🛑 **Anomaly Detection**: Real-time monitoring of on-chain activity.  
+- 📊 **Risk Dashboard API**: Exposes wallet risk profiles to UI/UX frontend apps.  
+- ⛓️ **Smart Contracts (Solidity)**: Fraud flagging + trust score storage on Base.  
+- ⚡ **Backend (FastAPI + Celery + Redis)**: Async data processing.  
+- 🗄️ **Database (Postgres)**: Store wallet profiles and flagged addresses.  
+- 🐳 **Dockerized**: One command to run full stack.  
 
-```
-ocs-fraud-backend/
-  backend/
-    app/
-      api/
-      core/
-      db/
-      models/
-      schemas/
-      services/
-      workers/
-      __init__.py
-      main.py
-    alembic/
-      versions/
-    alembic.ini
-    requirements.txt
-    .env.example
-  contracts/
-    BaseTrustRegistry.sol
-  hardhat/
-    hardhat.config.ts
-    scripts/deploy.ts
-    package.json
-    tsconfig.json
-    .env.example
-  scripts/
-    dev_run.sh
-    format.sh
-  README.md
+---
+
+## 🛠️ Tech Stack
+- **Backend**: FastAPI, Celery, Redis, PostgreSQL  
+- **Smart Contracts**: Solidity + Hardhat (deployed on Base)  
+- **Infra**: Docker Compose  
+- **Monitoring**: Wallet profiler, anomaly detector  
+
+---
+
+## ⚡ Quick Start
+
+### 1. Clone Repo
+```bash
+git clone https://github.com/Sharan2922/On-Chain-Fraud-Detection-Wallet-Profiler.git
+cd On-Chain-Fraud-Detection-Wallet-Profiler
+````
+
+### 2. Setup Environment
+
+Create a `.env` file in the root folder:
+
+```env
+POSTGRES_USER=frauduser
+POSTGRES_PASSWORD=fraudpass
+POSTGRES_DB=frauddb
+REDIS_URL=redis://redis:6379/0
 ```
 
----
-
-## 🛠 Prerequisites
-
-- Python 3.10+
-- Redis (e.g., `redis-server` locally or Docker)
-- Postgres 14+
-- Node.js 18+ (for Hardhat)
-- Alchemy (or equivalent) RPC URL for **Base** / **Base Sepolia**
-
----
-
-## 🔐 Environment
-
-Copy and set envs:
+### 3. Run with Docker
 
 ```bash
-cp backend/.env.example backend/.env
-cp hardhat/.env.example hardhat/.env
+docker compose up --build
 ```
 
-**backend/.env** (edit values):
-```
-ENV=dev
-DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/ocs_fraud
-REDIS_URL=redis://localhost:6379/0
+### 4. Access API
 
-# Alchemy/Provider (Base or Base Sepolia)
-BASE_RPC_URL=https://base-mainnet.g.alchemy.com/v2/YOUR_KEY
-BASESCAN_API_KEY=YOUR_BASESCAN_KEY
-
-# Model
-MODEL_DIR=./data/models
-```
-
-**hardhat/.env**:
-```
-PRIVATE_KEY=0xYOUR_PRIVATE_KEY
-BASE_MAINNET_RPC=https://base-mainnet.g.alchemy.com/v2/YOUR_KEY
-BASE_SEPOLIA_RPC=https://base-sepolia.g.alchemy.com/v2/YOUR_KEY
-```
+* Swagger Docs → [http://localhost:8000/docs](http://localhost:8000/docs)
+* Health Check → [http://localhost:8000/health](http://localhost:8000/health)
 
 ---
 
-## 🗄 Database & Migrations
+## 📡 API Endpoints
 
-```bash
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-alembic upgrade head
-```
-
-> If first run: `alembic revision --autogenerate -m "init"` then `alembic upgrade head`.
+* `POST /analyze-wallet/` → Analyze a wallet for fraud risk
+* `GET /wallet/{address}` → Fetch risk score & flags for a wallet
+* `GET /alerts/` → Get recent fraud alerts
 
 ---
 
-## ▶️ Run API & Workers (dev)
+## ⛓️ Smart Contract
 
-Terminal 1 (API):
-```bash
-cd backend && source .venv/bin/activate
-uvicorn app.main:app --reload --port 8000
-```
-
-Terminal 2 (Celery worker):
-```bash
-cd backend && source .venv/bin/activate
-celery -A app.workers.celery_app worker --loglevel=INFO -Q default,etl,scoring
-```
-
----
-
-## 🤝 Hardhat (Contracts)
+* Located in `hardhat/` folder.
+* Deploy:
 
 ```bash
 cd hardhat
 npm install
 npx hardhat compile
-
-# Deploy to Base Sepolia
-npx hardhat run scripts/deploy.ts --network base_sepolia
+npx hardhat run scripts/deploy.js --network base
 ```
-
-The deployment prints the `BaseTrustRegistry` address. Copy it to backend `.env` if you want to emit on-chain events from the API in future enhancements.
 
 ---
 
-## 🧪 Quick Test
+## 👥 Team & Credits
 
-With API running:
-
-```
-GET  /health
-POST /v1/ingest/{address}
-GET  /v1/score/{address}
-GET  /v1/wallets/{address}
-POST /v1/labels/{address}
-```
-
-Try a Base address like `0x0000000000000000000000000000000000000000` (for demo only).
-
----
-
-## 🔒 Notes
-
-- This is production-grade scaffold with strong defaults. You can iterate safely.
-- Replace placeholder RPC keys and tune the feature rules.
-- IsolationForest model starts untrained; it will fit incrementally as data is collected.
+* Built by **Sharan Shetty** for Onchain Summer Awards 2025.
+* Backend: FastAPI, Celery, Solidity
+* Frontend: (to be built with Bolt AI)
 
 ---
 
 ## 📜 License
 
-MIT
+MIT License
 
-
----
-
-## 🐳 One-Command Run (Docker)
-
-**Prereq:** Docker Desktop installed.
-
-1. Set environment variables in your shell (use your provider keys):
-
-```bash
-export BASE_RPC_URL="https://base-sepolia.g.alchemy.com/v2/YOUR_KEY"
-export BASESCAN_API_KEY="YOUR_BASESCAN_KEY"
 ```
 
-2. Start everything (Postgres, Redis, API, Worker):  
-```bash
-docker compose up --build
-```
-3. Open docs: http://localhost:8000/docs
-
-**Notes**
-- Add any known bad addresses to `backend/data/known_bad_addresses.json`:
-```json
-{"addresses": ["0xabc...", "0xdef..."]}
-```
-- DEX interactions counted using known router addresses for Uniswap V3, Aerodrome, BaseSwap on Base.
-- Approvals are detected by function selectors in transaction input (approve/increase/decrease allowance).
-
 ---
 
-## 🔎 Data Sources
-
-- Normal txs & ERC20 transfers via **Basescan API**. Set `BASESCAN_API_KEY` in env.
-- You can increase pagination in `app/services/etl.py` if you need deeper history.
-
----
-
-## 🧠 Retraining Endpoint
-
-- `POST /v1/retrain` — refits IsolationForest on all stored feature rows.
-
----
