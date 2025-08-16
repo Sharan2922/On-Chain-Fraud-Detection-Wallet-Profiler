@@ -1,99 +1,88 @@
+# 🛡️ On-Chain Fraud Detection & Wallet Profiler (Etherscan V2)
 
-# 🛡️ On-Chain Fraud Detection & Wallet Profiler
+Backend + smart contracts for a consumer app that detects suspicious wallets and profiles risk, built for **Base** and the **Onchain Summer Awards 2025**.
 
-A fraud detection and wallet profiling system for Web3, built on **Base**.  
-This project detects suspicious wallet activity, generates trust scores, and provides APIs for consumer apps and dashboards.  
+This bundle uses the **Etherscan V2 Multichain API** (single API key, pass `chainid=8453` for Base mainnet or `84532` for Base Sepolia).
 
-🚀 Built for the **Onchain Summer Awards 2025**.
+## Quickstart
 
----
+1. Create a `.env` in the project root (copy `.env.example` and fill values).
+2. Install Docker Desktop and run:
+   ```bash
+   docker compose up --build
+   ```
+3. Open API docs: http://localhost:8000/docs
+4. Try it:
+   - `POST /v1/ingest/{address}`
+   - `GET /v1/score/{address}`
 
-## 📌 Features
-- 🔍 **Wallet Risk Scoring**: Detect suspicious transactions & assign trust scores.  
-- 🛑 **Anomaly Detection**: Real-time monitoring of on-chain activity.  
-- 📊 **Risk Dashboard API**: Exposes wallet risk profiles to UI/UX frontend apps.  
-- ⛓️ **Smart Contracts (Solidity)**: Fraud flagging + trust score storage on Base.  
-- ⚡ **Backend (FastAPI + Celery + Redis)**: Async data processing.  
-- 🗄️ **Database (Postgres)**: Store wallet profiles and flagged addresses.  
-- 🐳 **Dockerized**: One command to run full stack.  
-
----
-
-## 🛠️ Tech Stack
-- **Backend**: FastAPI, Celery, Redis, PostgreSQL  
-- **Smart Contracts**: Solidity + Hardhat (deployed on Base)  
-- **Infra**: Docker Compose  
-- **Monitoring**: Wallet profiler, anomaly detector  
-
----
-
-## ⚡ Quick Start
-
-### 1. Clone Repo
-```bash
-git clone https://github.com/Sharan2922/On-Chain-Fraud-Detection-Wallet-Profiler.git
-cd On-Chain-Fraud-Detection-Wallet-Profiler
-````
-
-### 2. Setup Environment
-
-Create a `.env` file in the root folder:
-
-```env
-POSTGRES_USER=frauduser
-POSTGRES_PASSWORD=fraudpass
-POSTGRES_DB=frauddb
-REDIS_URL=redis://redis:6379/0
-```
-
-### 3. Run with Docker
-
-```bash
-docker compose up --build
-```
-
-### 4. Access API
-
-* Swagger Docs → [http://localhost:8000/docs](http://localhost:8000/docs)
-* Health Check → [http://localhost:8000/health](http://localhost:8000/health)
-
----
-
-## 📡 API Endpoints
-
-* `POST /analyze-wallet/` → Analyze a wallet for fraud risk
-* `GET /wallet/{address}` → Fetch risk score & flags for a wallet
-* `GET /alerts/` → Get recent fraud alerts
-
----
-
-## ⛓️ Smart Contract
-
-* Located in `hardhat/` folder.
-* Deploy:
-
-```bash
-cd hardhat
-npm install
-npx hardhat compile
-npx hardhat run scripts/deploy.js --network base
-```
-
----
-
-## 👥 Team & Credits
-
-* Built by **Sharan Shetty** for Onchain Summer Awards 2025.
-* Backend: FastAPI, Celery, Solidity
-* Frontend: (to be built with Bolt AI)
-
----
-
-## 📜 License
-
-MIT License
+## Project Layout
 
 ```
+On-Chain-Fraud-Detection-Wallet-Profiler/
+├─ docker-compose.yml
+├─ .env.example
+├─ README.md
+├─ backend/
+│  ├─ Dockerfile
+│  ├─ entrypoint.sh
+│  ├─ requirements.txt
+│  ├─ alembic.ini
+│  ├─ alembic/
+│  │  ├─ env.py
+│  │  └─ versions/
+│  │     └─ 20250816_0001_init.py
+│  └─ app/
+│     ├─ __init__.py
+│     ├─ main.py
+│     ├─ api/
+│     │  ├─ __init__.py
+│     │  ├─ router.py
+│     │  └─ v1/
+│     │     ├─ __init__.py
+│     │     ├─ health.py
+│     │     ├─ ingest.py
+│     │     ├─ score.py
+│     │     ├─ wallets.py
+│     │     └─ labels.py
+│     ├─ core/
+│     │  ├─ __init__.py
+│     │  └─ config.py
+│     ├─ db/
+│     │  ├─ __init__.py
+│     │  ├─ base.py
+│     │  └─ session.py
+│     ├─ models/
+│     │  ├─ __init__.py
+│     │  ├─ wallet.py
+│     │  └─ label.py
+│     ├─ services/
+│     │  ├─ __init__.py
+│     │  ├─ etl.py
+│     │  ├─ features.py
+│     │  ├─ scoring.py
+│     │  └─ constants.py
+│     ├─ workers/
+│     │  ├─ __init__.py
+│     │  ├─ celery_app.py
+│     │  └─ tasks.py
+│     └─ data/
+│        └─ known_bad_addresses.json
+└─ hardhat/
+   ├─ package.json
+   ├─ hardhat.config.ts
+   ├─ contracts/
+   │  └─ BaseTrustRegistry.sol
+   └─ scripts/
+      └─ deploy.ts
+```
 
----
+## Etherscan V2 note
+
+- Base URL: `https://api.etherscan.io/v2/api`
+- Add `chainid=8453` (Base mainnet) or `chainid=84532` (Base Sepolia) to queries.
+- Example:
+  ```bash
+  curl "https://api.etherscan.io/v2/api?chainid=8453&module=account&action=txlist&address=0x...&apikey=YOUR_KEY"
+  ```
 

@@ -1,53 +1,43 @@
-version: "3.9"
 services:
+  backend:
+    build: ./backend
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "8000:8000"
+    command: ["/bin/bash", "-c", "bash /app/entrypoint.sh"]
+    restart: unless-stopped
+
+  worker:
+    build: ./backend
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    command: ["celery", "-A", "app.workers.celery_app.celery_app", "worker", "--loglevel=INFO"]
+    restart: unless-stopped
+
   db:
-    image: postgres:14
-    container_name: ocs_db
+    image: postgres:15
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: ocs_fraud
-    ports: ["5432:5432"]
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
   redis:
     image: redis:7
-    container_name: ocs_redis
-    ports: ["6379:6379"]
-  api:
-    build:
-      context: ./backend
-    container_name: ocs_api
-    environment:
-      ENV: dev
-      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ocs_fraud
-      REDIS_URL: redis://redis:6379/0
-      BASE_RPC_URL: ${BASE_RPC_URL:-}
-      BASESCAN_API_KEY: ${BASESCAN_API_KEY:-}
-      MODEL_DIR: /models
-      SCAMLIST_PATH: /data/known_bad_addresses.json
-    volumes:
-      - ./backend/data:/data
-      - modeldata:/models
-    ports: ["8000:8000"]
-    depends_on: [db, redis]
-  worker:
-    build:
-      context: ./backend
-    container_name: ocs_worker
-    environment:
-      ENV: dev
-      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/ocs_fraud
-      REDIS_URL: redis://redis:6379/0
-      BASE_RPC_URL: ${BASE_RPC_URL:-}
-      BASESCAN_API_KEY: ${BASESCAN_API_KEY:-}
-      MODEL_DIR: /models
-      SCAMLIST_PATH: /data/known_bad_addresses.json
-    volumes:
-      - ./backend/data:/data
-      - modeldata:/models
-    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=INFO", "-Q", "default,etl,scoring"]
-    depends_on: [db, redis]
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
 volumes:
   pgdata:
-  modeldata:

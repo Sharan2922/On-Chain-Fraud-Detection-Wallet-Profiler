@@ -1,34 +1,46 @@
-from app.workers.celery_app import celery
+from celery import Celery
 from app.core.config import settings
-from app.services.etl import fetch_account_summary
-from app.services.features import engineer_features
-from app.services.scoring import score_features, partial_fit
 from app.db.session import SessionLocal
 from app.models.wallet import Wallet
+from app.services import etl, scoring
 
-@celery.task(name="ingest_and_score", queue="etl")
-def ingest_and_score(address: str):
-    summary = fetch_account_summary(address)
-    feats = engineer_features(summary)
-    risk_score, level = score_features(feats, settings.MODEL_DIR)
+celery_app = Celery(
+    "fraud_worker",
+    broker=settings.REDIS_URL,
+    backend=settings.REDIS_URL,
+)
 
-    with SessionLocal() as db:
-        w = db.get(Wallet, address.lower())
-        if not w:
-            w = Wallet(address=address.lower(), chain="base")
-            db.add(w)
-        w.tx_count = int(summary.get("tx_count", 0))
-        w.unique_counterparties = int(summary.get("unique_counterparties", 0))
-        w.total_in_value = float(summary.get("total_in_value", 0.0))
-        w.total_out_value = float(summary.get("total_out_value", 0.0))
-        w.approvals = int(summary.get("approvals", 0))
-        w.dex_interactions = int(summary.get("dex_interactions", 0))
-        w.scam_interactions = int(summary.get("scam_interactions", 0))
-        w.risk_score = risk_score
-        w.risk_level = level
-        w.features = feats
-        db.commit()
+celery_app.conf.update(
+    task_serializer="json",
+    accept_content=["json"],
+    result_serializer="json",
+    timezone="UTC",
+    enable_utc=True,
+)
 
-    # simple model refresh on single sample (batched in real system)
-    partial_fit([feats], settings.MODEL_DIR)
-    return {"address": address, "risk_score": risk_score, "risk_level": level}
+
+@celery_app.task(name="ingest_and_score_task")
+def ingest_and_score_task(address: str):
+    """Fetch txs → score → save into DB"""
+    address = address.lower()
+
+    # run your ETL
+    normal = etl.fetch_normal_txs(address)
+    internal = etl.fetch_internal_txs(address)
+    token = etl.fetch_token_txs(address)
+
+    # calculate score
+    score, level = scoring.score_wallet(normal, internal, token)
+
+    # Save to DB
+    db = SessionLocal()
+    wallet = Wallet(
+        address=address,
+        score=score,
+        risk_level=level,
+    )
+    db.merge(wallet)   # upsert: insert or update if exists
+    db.commit()
+    db.close()
+
+    return {"address": address, "score": score, "level": level}

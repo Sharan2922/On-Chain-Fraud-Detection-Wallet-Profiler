@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Run Alembic migrations
-alembic upgrade head || true
+
+# Migrate DB
+alembic -c /app/alembic.ini upgrade head
+
 # Start API
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+uvicorn app.main:app --host 0.0.0.0 --port ${APP_PORT:-8000}

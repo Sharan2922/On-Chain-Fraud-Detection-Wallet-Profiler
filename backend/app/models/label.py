@@ -1,11 +1,11 @@
-from sqlalchemy import Column, String, DateTime, Text
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, String, Text, DateTime, func
 from app.db.base import Base
 
 class Label(Base):
     __tablename__ = "labels"
-    address = Column(String(42), primary_key=True)
-    label = Column(String(64), nullable=False)  # e.g., phishing, exchange, dex, nft_market
-    source = Column(String(64), default="user")
-    note = Column(Text, default="")
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    address = Column(String(64), index=True, nullable=False)
+    label = Column(String(64), nullable=False)
+    source = Column(String(64), nullable=True)
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

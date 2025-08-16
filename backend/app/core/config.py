@@ -1,16 +1,21 @@
-from pydantic_settings import BaseSettings
-from pydantic import Field
+import os
+from pydantic import BaseSettings
+from dotenv import load_dotenv
+
+# Load variables from .env
+load_dotenv()
 
 class Settings(BaseSettings):
-    ENV: str = Field(default="dev")
-    DATABASE_URL: str
-    REDIS_URL: str = "redis://localhost:6379/0"
-    BASE_RPC_URL: str = ""
-    BASESCAN_API_KEY: str = ""
-    MODEL_DIR: str = "./data/models"
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "frauduser")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "fraudpass")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "frauddb")
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")
+    POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT", 5432))
 
-    class Config:
-        env_file = "backend/.env"
-        extra = "ignore"
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+
+    # 🔹 Add missing ones
+    ETHERSCAN_API_KEY: str = os.getenv("ETHERSCAN_API_KEY")
+    CHAIN_ID: int = int(os.getenv("CHAIN_ID", 1))
 
 settings = Settings()

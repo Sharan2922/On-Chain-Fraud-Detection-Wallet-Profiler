@@ -1,22 +1,17 @@
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1     PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# System deps for psycopg2 and build
+RUN apt-get update && apt-get install -y --no-install-recommends     build-essential gcc libpq-dev curl bash &&     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# System deps
-RUN apt-get update && apt-get install -y build-essential curl && rm -rf /var/lib/apt/lists/*
-
-# Install requirements
-COPY backend/requirements.txt /app/requirements.txt
+COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy app
-COPY backend /app
+COPY . /app
 
-# Entrypoint will run migrations then start server
-COPY backend/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-EXPOSE 8000
-CMD ["/entrypoint.sh"]
+# Health check (optional)
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:8000/health || exit 1
