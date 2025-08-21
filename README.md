@@ -1,88 +1,158 @@
-# 🛡️ On-Chain Fraud Detection & Wallet Profiler (Etherscan V2)
+# 🛡️ On-Chain Fraud Detection & Wallet Profiler
 
-Backend + smart contracts for a consumer app that detects suspicious wallets and profiles risk, built for **Base** and the **Onchain Summer Awards 2025**.
+A full-stack dApp for **detecting risky wallets and contracts on-chain**, combining:
+- 🚀 FastAPI backend (risk analysis, database, contract interactions)  
+- 💻 React + Vite frontend (wallet connection, UI)  
+- ⛓️ Ethereum Sepolia testnet smart contract integration  
 
-This bundle uses the **Etherscan V2 Multichain API** (single API key, pass `chainid=8453` for Base mainnet or `84532` for Base Sepolia).
+---
 
-## Quickstart
+## 🌍 Live Deployment
+- **Frontend (Vercel)** → [on-chain-fraud-detection-wallet-pro.vercel.app](https://on-chain-fraud-detection-wallet-pro.vercel.app)  
+- **Backend (Render)** → [on-chain-fraud-detection-wallet-profiler-41ox.onrender.com](https://on-chain-fraud-detection-wallet-profiler-41ox.onrender.com)  
 
-1. Create a `.env` in the project root (copy `.env.example` and fill values).
-2. Install Docker Desktop and run:
-   ```bash
-   docker compose up --build
-   ```
-3. Open API docs: http://localhost:8000/docs
-4. Try it:
-   - `POST /v1/ingest/{address}`
-   - `GET /v1/score/{address}`
+---
 
-## Project Layout
-
+## 📂 Project Structure
 ```
+
 On-Chain-Fraud-Detection-Wallet-Profiler/
-├─ docker-compose.yml
-├─ .env.example
-├─ README.md
-├─ backend/
-│  ├─ Dockerfile
-│  ├─ entrypoint.sh
-│  ├─ requirements.txt
-│  ├─ alembic.ini
-│  ├─ alembic/
-│  │  ├─ env.py
-│  │  └─ versions/
-│  │     └─ 20250816_0001_init.py
-│  └─ app/
-│     ├─ __init__.py
-│     ├─ main.py
-│     ├─ api/
-│     │  ├─ __init__.py
-│     │  ├─ router.py
-│     │  └─ v1/
-│     │     ├─ __init__.py
-│     │     ├─ health.py
-│     │     ├─ ingest.py
-│     │     ├─ score.py
-│     │     ├─ wallets.py
-│     │     └─ labels.py
-│     ├─ core/
-│     │  ├─ __init__.py
-│     │  └─ config.py
-│     ├─ db/
-│     │  ├─ __init__.py
-│     │  ├─ base.py
-│     │  └─ session.py
-│     ├─ models/
-│     │  ├─ __init__.py
-│     │  ├─ wallet.py
-│     │  └─ label.py
-│     ├─ services/
-│     │  ├─ __init__.py
-│     │  ├─ etl.py
-│     │  ├─ features.py
-│     │  ├─ scoring.py
-│     │  └─ constants.py
-│     ├─ workers/
-│     │  ├─ __init__.py
-│     │  ├─ celery_app.py
-│     │  └─ tasks.py
-│     └─ data/
-│        └─ known_bad_addresses.json
-└─ hardhat/
-   ├─ package.json
-   ├─ hardhat.config.ts
-   ├─ contracts/
-   │  └─ BaseTrustRegistry.sol
-   └─ scripts/
-      └─ deploy.ts
+│── backend/           # FastAPI app
+│   ├── app/
+│   │   ├── api/       # Routers (/v1/ingest, /v1/score, /v1/wallets, etc.)
+│   │   ├── models/    # SQLAlchemy models
+│   │   ├── services/  # Contract services
+│   │   └── main.py    # FastAPI entrypoint
+│   └── requirements.txt
+│
+│── frontend/          # React + Vite app
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.ts
+│
+│── contracts/         # Solidity smart contracts
+│── scripts/           # Deployment scripts (Hardhat/ethers.js)
+│── README.md
+
+````
+
+---
+
+## ⚡ Local Development
+
+### 1️⃣ Backend (FastAPI)
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate   # Mac/Linux
+venv\Scripts\activate      # Windows
+
+pip install -r requirements.txt
+
+# Run server
+uvicorn app.main:app --reload --port 8000
+````
+
+👉 API will be live at: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+---
+
+### 2️⃣ Frontend (React + Vite)
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-## Etherscan V2 note
+👉 App will run at: [http://localhost:5173](http://localhost:5173)
 
-- Base URL: `https://api.etherscan.io/v2/api`
-- Add `chainid=8453` (Base mainnet) or `chainid=84532` (Base Sepolia) to queries.
-- Example:
-  ```bash
-  curl "https://api.etherscan.io/v2/api?chainid=8453&module=account&action=txlist&address=0x...&apikey=YOUR_KEY"
-  ```
+---
 
+## 🔑 Environment Variables
+
+### Backend (`backend/.env`)
+
+```
+DATABASE_URL=sqlite:///./wallets.db
+PRIVATE_KEY=your_wallet_private_key   # for contract writes
+RPC_URL=https://sepolia.infura.io/v3/<your-infura-id>
+CONTRACT_ADDRESS=0x...                # deployed WalletProfiler contract
+```
+
+### Frontend (`frontend/.env.local` or Vercel → Environment Variables)
+
+```
+VITE_BACKEND_URL=https://on-chain-fraud-detection-wallet-profiler-41ox.onrender.com
+VITE_WALLETCONNECT_PROJECT_ID=<your-walletconnect-project-id>
+```
+
+⚠️ You can get a **WalletConnect Project ID** from: [https://cloud.walletconnect.com](https://cloud.walletconnect.com)
+
+---
+
+## 🚀 Deployment
+
+### Backend → Render
+
+1. Push code to GitHub.
+2. Create a new **Web Service** in [Render](https://render.com/).
+3. Select `backend/` as root folder.
+4. Environment: **Python 3.10+**
+5. Start command:
+
+   ```
+   uvicorn app.main:app --host 0.0.0.0 --port $PORT
+   ```
+6. Add `.env` variables in Render dashboard.
+
+---
+
+### Frontend → Vercel
+
+1. Import repo into [Vercel](https://vercel.com/).
+2. Select `frontend/` as root folder.
+3. Add environment variables:
+
+   ```
+   VITE_BACKEND_URL=https://on-chain-fraud-detection-wallet-profiler-41ox.onrender.com
+   VITE_WALLETCONNECT_PROJECT_ID=<your-walletconnect-project-id>
+   ```
+4. Deploy → live link auto generated.
+
+---
+
+## ⛓️ Smart Contracts
+
+* Contracts are in `contracts/` folder.
+* Deployed using **Hardhat** on **Sepolia** testnet.
+* Update `CONTRACT_ADDRESS` in backend `.env` after deployment.
+
+---
+
+## ✅ Features
+
+* Detect risky wallets with DB + scoring system
+* Label addresses & fetch history
+* On-chain contract message store & update
+* Wallet connection via WalletConnect / MetaMask
+* Deployed full-stack (Vercel + Render)
+
+---
+
+## 👨‍💻 Tech Stack
+
+* **Backend**: FastAPI, SQLAlchemy, Uvicorn
+* **Frontend**: React, Vite, Tailwind, shadcn/ui
+* **Blockchain**: Solidity, ethers.js, Hardhat
+* **Infra**: Render (backend), Vercel (frontend)
+
+---
+
+## 📜 License
+
+MIT License © 2025
+
+```
+
+---
