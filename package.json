@@ -1,0 +1,42 @@
+{
+  "name": "on-chain-fraud-detection-wallet-profiler",
+  "version": "1.0.0",
+  "description": "Backend + smart contracts for a consumer app that detects suspicious wallets and profiles risk, built for **Base** and the **Onchain Summer Awards 2025**.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sharan2922/On-Chain-Fraud-Detection-Wallet-Profiler.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Sharan2922/On-Chain-Fraud-Detection-Wallet-Profiler/issues"
+  },
+  "homepage": "https://github.com/Sharan2922/On-Chain-Fraud-Detection-Wallet-Profiler#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "dotenv": "^17.2.1",
+    "hardhat": "^2.26.3"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.7",
+    "@rainbow-me/rainbowkit": "^2.2.8",
+    "@tanstack/react-query": "^5.85.5",
+    "axios": "^1.11.0",
+    "framer-motion": "^12.23.12",
+    "lucide-react": "^0.540.0",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.8.1",
+    "recharts": "^3.1.2",
+    "viem": "^2.34.0",
+    "wagmi": "^2.16.4"
+  }
+}
