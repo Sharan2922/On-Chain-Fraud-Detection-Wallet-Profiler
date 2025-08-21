@@ -7,3 +7,5 @@ SQLAlchemy>=2.0
 psycopg2-binary>=2.9
 web3>=7.3
 eth-account>=0.13
+celery
+redis
